@@ -41,13 +41,46 @@ Entreprise dépensant $500K/mois en infrastructure data. Besoin d'un moteur d'op
 - False positives dans les anomalies
 - Safeguards automation (pas toucher à la prod)
 
-## Structure attendue
+## Structure du Projet
 ```
 src/
 ├── collector/          # Multi-cloud cost APIs
-├── analytics/          # Anomaly detection + recommendations
-├── automation/         # Argo workflows de remediation
-├── dashboard/          # Streamlit FinOps dashboard
+├── analytics/          # Anomaly detection + recommendations + tagging
+├── automation/         # Workflows de remediation
+├── dashboard/          # Streamlit FinOps dashboard configuration
 ├── forecasting/        # Time series prediction
-└── policies/           # Policy-as-code rules
+├── policies/           # Policy-as-code rules
+tests/                  # Tests unitaires et d'intégration
+infra/                  # Configuration Terraform
 ```
+
+## Prise en Main & Lancement
+
+### 1. Démarrer l'infrastructure locale
+```bash
+docker-compose up -d
+```
+
+### 2. Déployer l'infrastructure Cloud avec Terraform
+```bash
+cd infra/terraform
+terraform init
+terraform apply -auto-approve
+```
+
+### 3. Lancer la collecte des données de coût
+```bash
+python src/collector/aws_collector.py  # ou gcp_collector.py / azure_collector.py
+```
+
+### 4. Lancer le moteur d'analyse et de détection d'anomalies
+```bash
+python src/analytics/anomaly_detector.py
+```
+
+## Exécuter les Tests
+Les tests couvrent les collecteurs, la détection d'anomalies, le module de recommandations, les politiques de gouvernance de coût et la prédiction :
+```bash
+pytest tests/
+```
+
