@@ -1,0 +1,51 @@
+name: finops
+
+volumes:
+  clickhouse-data:
+  postgres-data:
+
+services:
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: finops-clickhouse
+    ports:
+      - "8124:8123"
+      - "9001:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: finops-pg
+    environment:
+      POSTGRES_USER: finops
+      POSTGRES_PASSWORD: finops
+      POSTGRES_DB: finops
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "finops"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  streamlit:
+    image: python:3.12-slim
+    container_name: finops-streamlit
+    ports:
+      - "8502:8501"
+    volumes:
+      - ./src:/app/src
+    working_dir: /app
+    command: >
+      bash -c "pip install streamlit pandas -q &&
+      echo 'Streamlit dashboard ready — run: streamlit run src/dashboard/app.py' &&
+      tail -f /dev/null"
